@@ -106,7 +106,6 @@ stages:
                       fi
                       echo "Usando JAR: $JAR_FILE"
                       cp -f "$JAR_FILE" build/libs/app.jar
-                      export DOCKER_BUILDKIT=1
                       docker build -f Dockerfile.runtime -t cinefinder . 2>&1
                       docker rm -f cinefinder || true
                       docker run -d -p 8080:8080 \
