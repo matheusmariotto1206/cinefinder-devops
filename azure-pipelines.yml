@@ -79,9 +79,9 @@ stages:
                       fi
                       cd "$DEPLOY_PATH"
                       git pull origin main
-                      sudo docker build -t cinefinder .
-                      sudo docker rm -f cinefinder || true
-                      sudo docker run -d -p 8080:8080 \
+                      docker build -t cinefinder .
+                      docker rm -f cinefinder || true
+                      docker run -d -p 8080:8080 \
                         -e SPRING_DATASOURCE_URL="$(SPRING_DATASOURCE_URL)" \
                         -e SPRING_DATASOURCE_USERNAME="$(SPRING_DATASOURCE_USERNAME)" \
                         -e SPRING_DATASOURCE_PASSWORD="$(SPRING_DATASOURCE_PASSWORD)" \
