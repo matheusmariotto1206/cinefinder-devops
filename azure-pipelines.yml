@@ -31,6 +31,8 @@ stages:
 
           - script: |
               chmod +x gradlew
+              # Variaveis da pipeline (Oracle) viram env e sobrescrevem o profile dev no CI
+              unset SPRING_DATASOURCE_URL SPRING_DATASOURCE_USERNAME SPRING_DATASOURCE_PASSWORD
               export SPRING_PROFILES_ACTIVE=dev
               ./gradlew test build --no-daemon
             displayName: 'Testes e build (profile dev/H2 no CI)'
@@ -96,7 +98,14 @@ stages:
                       cd "$DEPLOY_PATH"
                       git pull origin main 2>&1
                       mkdir -p build/libs
-                      cp -f "$DEPLOY_LIBS"/*.jar build/libs/
+                      JAR_FILE=$(ls -1 "$DEPLOY_LIBS"/*.jar 2>/dev/null | grep -v plain | head -1)
+                      if [ -z "$JAR_FILE" ]; then
+                        echo "ERRO: nenhum JAR em $DEPLOY_LIBS"
+                        ls -la "$DEPLOY_LIBS" || true
+                        exit 1
+                      fi
+                      echo "Usando JAR: $JAR_FILE"
+                      cp -f "$JAR_FILE" build/libs/app.jar
                       export DOCKER_BUILDKIT=1
                       docker build -f Dockerfile.runtime -t cinefinder . 2>&1
                       docker rm -f cinefinder || true
