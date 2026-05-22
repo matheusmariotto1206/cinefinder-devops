@@ -66,20 +66,39 @@ stages:
           runOnce:
             deploy:
               steps:
+                - download: current
+                  artifact: cinefinder-jar
+                  displayName: 'Baixar JAR do CI'
+
+                - task: CopyFilesOverSSH@0
+                  displayName: 'Enviar JAR para VM'
+                  inputs:
+                    sshEndpoint: 'vm-cinefinder-ssh'
+                    sourceFolder: '$(Pipeline.Workspace)/cinefinder-jar'
+                    contents: '**/*.jar'
+                    targetFolder: '/home/azureuser/cinefinder-deploy/libs'
+                    cleanTargetFolder: true
+                    failOnEmptySource: true
+
                 - task: SSH@0
                   displayName: 'Atualizar app na VM'
                   inputs:
                     sshEndpoint: 'vm-cinefinder-ssh'
                     runOptions: 'inline'
+                    failOnStdErr: false
                     inline: |
                       set -e
                       DEPLOY_PATH="/home/azureuser/cinefinder-devops"
+                      DEPLOY_LIBS="/home/azureuser/cinefinder-deploy/libs"
                       if [ ! -d "$DEPLOY_PATH" ]; then
                         git clone https://github.com/matheusmariotto1206/cinefinder-devops.git "$DEPLOY_PATH"
                       fi
                       cd "$DEPLOY_PATH"
-                      git pull origin main
-                      docker build -t cinefinder .
+                      git pull origin main 2>&1
+                      mkdir -p build/libs
+                      cp -f "$DEPLOY_LIBS"/*.jar build/libs/
+                      export DOCKER_BUILDKIT=1
+                      docker build -f Dockerfile.runtime -t cinefinder . 2>&1
                       docker rm -f cinefinder || true
                       docker run -d -p 8080:8080 \
                         -e SPRING_DATASOURCE_URL="$(SPRING_DATASOURCE_URL)" \
