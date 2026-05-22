@@ -1,0 +1,10 @@
+package br.com.fiap.cinefinder_v3.dto;
+
+import br.com.fiap.cinefinder_v3.model.User;
+
+public record UserProfileResponse(Long id, String name, String email) {
+
+    public static UserProfileResponse from(User user) {
+        return new UserProfileResponse(user.getId(), user.getName(), user.getEmail());
+    }
+}

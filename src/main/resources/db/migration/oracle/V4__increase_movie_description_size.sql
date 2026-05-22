@@ -1,0 +1,2 @@
+alter table CF_MOVIE
+    modify DESCRIPTION VARCHAR2(500)
