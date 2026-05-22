@@ -31,8 +31,9 @@ stages:
 
           - script: |
               chmod +x gradlew
+              export SPRING_PROFILES_ACTIVE=dev
               ./gradlew test build --no-daemon
-            displayName: 'Testes e build'
+            displayName: 'Testes e build (profile dev/H2 no CI)'
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publicar JAR'
