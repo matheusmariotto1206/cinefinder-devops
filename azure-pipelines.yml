@@ -1,0 +1,90 @@
+# Pipeline CineFinder DevOps - CI + Aprovação + CD (VM Azure)
+# Antes do primeiro CD: criar Service Connection SSH "vm-cinefinder-ssh" em Project Settings > Service connections
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  vmHost: '172.171.193.127'
+  vmDeployPath: '/home/azureuser/cinefinder-devops'
+
+stages:
+  - stage: CI
+    displayName: 'CI - Build e Testes'
+    jobs:
+      - job: BuildTest
+        displayName: 'Gradle test + build'
+        steps:
+          - checkout: self
+
+          - task: JavaToolInstaller@0
+            displayName: 'Java 17'
+            inputs:
+              versionSpec: '17'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+
+          - script: |
+              chmod +x gradlew
+              ./gradlew test build --no-daemon
+            displayName: 'Testes e build'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publicar JAR'
+            inputs:
+              PathtoPublish: 'build/libs'
+              ArtifactName: 'cinefinder-jar'
+              publishLocation: 'Container'
+
+  - stage: Approval
+    displayName: 'Aprovação manual'
+    dependsOn: CI
+    jobs:
+      - job: WaitApproval
+        pool: server
+        steps:
+          - task: ManualValidation@0
+            displayName: 'Aguardar aprovador'
+            inputs:
+              notifyUsers: ''
+              instructions: 'Revise o CI e aprove o deploy na VM Azure (vm-cinefinder-api).'
+
+  - stage: CD
+    displayName: 'CD - Deploy na VM'
+    dependsOn: Approval
+    jobs:
+      - deployment: DeployVM
+        displayName: 'Deploy Docker na VM'
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: SSH@0
+                  displayName: 'Atualizar app na VM'
+                  inputs:
+                    sshEndpoint: 'vm-cinefinder-ssh'
+                    runOptions: 'inline'
+                    inline: |
+                      set -e
+                      DEPLOY_PATH="/home/azureuser/cinefinder-devops"
+                      if [ ! -d "$DEPLOY_PATH" ]; then
+                        git clone https://github.com/matheusmariotto1206/cinefinder-devops.git "$DEPLOY_PATH"
+                      fi
+                      cd "$DEPLOY_PATH"
+                      git pull origin main
+                      sudo docker build -t cinefinder .
+                      sudo docker rm -f cinefinder || true
+                      sudo docker run -d -p 8080:8080 \
+                        -e SPRING_DATASOURCE_URL="$(SPRING_DATASOURCE_URL)" \
+                        -e SPRING_DATASOURCE_USERNAME="$(SPRING_DATASOURCE_USERNAME)" \
+                        -e SPRING_DATASOURCE_PASSWORD="$(SPRING_DATASOURCE_PASSWORD)" \
+                        -e SPRING_DATASOURCE_DRIVER_CLASS_NAME=oracle.jdbc.OracleDriver \
+                        -e SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.OracleDialect \
+                        -e SPRING_FLYWAY_LOCATIONS=classpath:db/migration/oracle \
+                        --name cinefinder cinefinder
