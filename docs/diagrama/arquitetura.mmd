@@ -1,0 +1,30 @@
+flowchart TB
+    DEV["Acesso - Desenvolvedor / Professor"]
+
+    subgraph ADO["Azure DevOps"]
+        GH["GitHub - cinefinder-devops"]
+        CI["CI - Gradle test + build"]
+        APR["Aprovacao manual"]
+        CD["CD RELEASE"]
+        GH --> CI --> APR --> CD
+    end
+
+    subgraph BUILD["Criacao da Imagem pelo Docker"]
+        DFILE["DOCKERFILE"]
+        IMG["Imagem Docker cinefinder"]
+        DFILE --> IMG
+    end
+
+    subgraph AZURE["Microsoft Azure"]
+        ACR["ACR - Container Registry"]
+        VM["VM Linux / ACI - API porta 8080"]
+        DB[("Oracle FIAP - banco na nuvem")]
+        ACR <--> VM
+    end
+
+    DEV --> GH
+    CI -->|BUILD| DFILE
+    IMG -->|PUSH| ACR
+    CD --> VM
+    VM -->|JDBC| DB
+    DEV -->|Postman e Swagger| VM

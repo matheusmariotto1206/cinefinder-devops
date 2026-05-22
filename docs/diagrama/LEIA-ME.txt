@@ -1,0 +1,8 @@
+Exporte o PNG no Mermaid Live:
+
+1. Abra docs/diagrama/arquitetura.mmd e copie todo o conteudo
+2. Cole em https://mermaid.live
+3. Export PNG
+4. Salve nesta pasta como: arquitetura-macro.png
+
+O PNG vai no PDF da entrega (ate 20 pontos do diagrama).

@@ -1,7 +1,5 @@
 # CineFinder API — Entrega DevOps
 
-**Repositório:** https://github.com/matheusmariotto1206/cinefinder-devops
-
 API REST para gerenciamento de filmes, avaliações (reviews) e listas personalizadas. Esta versão integra a solução a um fluxo de CI/CD no Azure DevOps com deploy em VM no Microsoft Azure e persistência em banco relacional na nuvem.
 
 ---
@@ -17,6 +15,49 @@ O CineFinder permite que usuários se registrem, autentiquem com JWT e executem 
 - **CI/CD:** reduz deploy manual, padroniza releases e diminui falhas em produção.
 - **Testes automatizados:** aumentam a confiança antes de publicar na VM.
 - **Nuvem (VM + banco):** ambiente acessível para demonstração, escala e evidência de persistência real dos dados no trabalho acadêmico.
+
+---
+
+## Arquitetura macro do projeto
+
+Fluxo: GitHub → Azure DevOps (CI/CD) → Docker → ACR → VM/ACI → Oracle FIAP.
+
+![Diagrama de arquitetura — CineFinder DevOps](docs/diagrama/arquitetura-macro.png)
+
+```mermaid
+flowchart TB
+    DEV["Acesso - Desenvolvedor / Professor"]
+
+    subgraph ADO["Azure DevOps"]
+        GH["GitHub - cinefinder-devops"]
+        CI["CI - Gradle test + build"]
+        APR["Aprovacao manual"]
+        CD["CD RELEASE"]
+        GH --> CI --> APR --> CD
+    end
+
+    subgraph BUILD["Criacao da Imagem pelo Docker"]
+        DFILE["DOCKERFILE"]
+        IMG["Imagem Docker cinefinder"]
+        DFILE --> IMG
+    end
+
+    subgraph AZURE["Microsoft Azure"]
+        ACR["ACR - Container Registry"]
+        VM["VM Linux / ACI - API porta 8080"]
+        DB[("Oracle FIAP - banco na nuvem")]
+        ACR <--> VM
+    end
+
+    DEV --> GH
+    CI -->|BUILD| DFILE
+    IMG -->|PUSH| ACR
+    CD --> VM
+    VM -->|JDBC| DB
+    DEV -->|Postman e Swagger| VM
+```
+
+Texto dissertativo (PDF): [docs/arquitetura-macro.md](docs/arquitetura-macro.md)
 
 ---
 
