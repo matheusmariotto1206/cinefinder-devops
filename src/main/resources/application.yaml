@@ -9,9 +9,9 @@ spring:
     name: cinefinder-java-advanced
 
   datasource:
-    url: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
-    username: rm559369
-    password: 121104
+    url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
 
 
@@ -25,9 +25,6 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration/oracle
-
-#  profiles:
-#    active: dev
 
 ---
 spring:

@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Documentos locais de entrega (nao versionar)
+docs/ENTREGA*.md

@@ -1,4 +1,3 @@
-# Imagem leve para CD: o JAR ja foi compilado no CI (evita Gradle na VM B1s)
 FROM eclipse-temurin:17-jre
 
 WORKDIR /app

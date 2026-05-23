@@ -1,153 +1,84 @@
 {
   "info": {
     "name": "CineFinder DevOps",
-    "description": "CRUD para entrega DevOps. Ajuste baseUrl: localhost ou IP da VM.",
+    "description": "CRUD na VM Azure. Executar pasta VIDEO - CRUD completo, requests 1 a 7.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "token", "value": "" }
+    { "key": "baseUrl", "value": "http://172.171.193.127:8080" },
+    { "key": "token", "value": "" },
+    { "key": "userId", "value": "81" },
+    { "key": "movieId", "value": "71" },
+    { "key": "reviewId", "value": "" }
   ],
   "item": [
     {
-      "name": "Auth",
+      "name": "VIDEO - CRUD completo (clique Send 1 ao 7)",
       "item": [
         {
-          "name": "Register",
+          "name": "1 - Login",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('1 - Login retornou 200', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('token', pm.response.json().token);"], "type": "text/javascript"}}],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": "{{baseUrl}}/auth/register",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Aluno DevOps\",\n  \"email\": \"devops@teste.com\",\n  \"password\": \"123456\",\n  \"age\": 22\n}"
-            }
-          }
-        },
-        {
-          "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var json = pm.response.json();",
-                  "if (json.token) { pm.collectionVariables.set('token', json.token); }"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [{"key": "Content-Type", "value": "application/json"}],
             "url": "{{baseUrl}}/auth/login",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"devops@teste.com\",\n  \"password\": \"123456\"\n}"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Reviews CRUD",
-      "item": [
-        {
-          "name": "Create Review",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": "{{baseUrl}}/api/reviews",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"movieId\": 1,\n  \"rating\": 8.5,\n  \"comments\": \"Create - entrega DevOps\"\n}"
-            }
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"matheus.devops.2026@teste.com\",\n  \"password\": \"123456\"\n}"}
           }
         },
         {
-          "name": "Get Review",
+          "name": "2 - Get Me (userId)",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('2 - Get Me retornou 200', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('userId', String(pm.response.json().id));"], "type": "text/javascript"}}],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/reviews/1"
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/auth/me"
           }
         },
         {
-          "name": "Update Review",
+          "name": "3 - List Movies (movieId)",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('3 - List Movies retornou 200', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('movieId', String(pm.response.json().content[0].id));"], "type": "text/javascript"}}],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/movies?page=0&size=5"
+          }
+        },
+        {
+          "name": "4 - CREATE Review",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('4 - CREATE retornou 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('reviewId', String(pm.response.json().id));"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/reviews",
+            "body": {"mode": "raw", "raw": "{\n  \"userId\": {{userId}},\n  \"movieId\": {{movieId}},\n  \"rating\": 8.5,\n  \"comments\": \"CREATE - video DevOps FIAP\"\n}"}
+          }
+        },
+        {
+          "name": "5 - READ Review",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('5 - READ retornou 200', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/reviews/{{reviewId}}"
+          }
+        },
+        {
+          "name": "6 - UPDATE Review",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('6 - UPDATE retornou 200', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}],
           "request": {
             "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": "{{baseUrl}}/api/reviews/1",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rating\": 9,\n  \"comments\": \"Update - entrega DevOps\"\n}"
-            }
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/reviews/{{reviewId}}",
+            "body": {"mode": "raw", "raw": "{\n  \"rating\": 9,\n  \"comments\": \"UPDATE - video DevOps FIAP\"\n}"}
           }
         },
         {
-          "name": "Delete Review",
+          "name": "7 - DELETE Review",
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('7 - DELETE ok', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"], "type": "text/javascript"}}],
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/reviews/1"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Lists CRUD",
-      "item": [
-        {
-          "name": "Create List",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": "{{baseUrl}}/api/lists",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Lista DevOps\",\n  \"userId\": 1\n}"
-            }
-          }
-        },
-        {
-          "name": "Get List",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/lists/1"
-          }
-        },
-        {
-          "name": "Update List",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": "{{baseUrl}}/api/lists/1",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Lista DevOps atualizada\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete List",
-          "request": {
-            "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": "{{baseUrl}}/api/lists/1"
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/reviews/{{reviewId}}"
           }
         }
       ]
