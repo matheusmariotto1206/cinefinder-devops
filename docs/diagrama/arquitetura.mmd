@@ -17,8 +17,8 @@ flowchart TB
 
     subgraph AZURE["Microsoft Azure"]
         ACR["ACR - Container Registry"]
-        VM["VM Linux / ACI - API porta 8080"]
-        DB[("Oracle FIAP - banco na nuvem")]
+        VM["VM Linux - API porta 8080"]
+        DB[("Oracle FIAP")]
         ACR <--> VM
     end
 
